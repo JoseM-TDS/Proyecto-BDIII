@@ -16,6 +16,16 @@ CREATE TABLE `product` (
 
 ALTER TABLE `product` ADD FOREIGN KEY (`store_location`) REFERENCES `store_location` (`id`);
 
+-- Particion vertical 'product'
+CREATE TABLE `product_stock` (
+    `id` int PRIMARY KEY AUTO_INCREMENT,
+    `code` int UNIQUE,
+    `stock` int NOT NULL DEFAULT 0,
+    `store_location` int NOT NULL
+);
+
+ALTER TABLE `product_stock` ADD FOREIGN KEY (`id`) REFERENCES `product` (`id`);
+
 CREATE TABLE `sale` (
     `id` int PRIMARY KEY AUTO_INCREMENT,
     `unit_amount` int NOT NULL,
@@ -26,6 +36,49 @@ CREATE TABLE `sale` (
 
 ALTER TABLE `sale` ADD FOREIGN KEY (`product_id`) REFERENCES `product` (`id`);
 
+-- Particion Horizontal 'sale'
+-- Function Partition
+CREATE PARTITION FUNCTION PartitionByYear (DATE) AS RANGE LEFT FOR VALUES ('2022-12-31', '2023-12-31', '2024-12-31');
+
+-- Filegroups
+ALTER DATABASE inventario_db ADD FILEGROUP FG_2022;
+ALTER DATABASE inventario_db ADD FILEGROUP FG_2023;
+ALTER DATABASE inventario_db ADD FILEGROUP FG_2024;
+ALTER DATABASE inventario_db ADD FILEGROUP FG_2025;
+
+-- Data Files
+ALTER DATABASE inventario_db ADD FILE (
+    NAME = P_2022,
+    FILENAME = 'C:\ParticionesDB\InventarioDB\P_2022.ndf'
+) TO FILEGROUP FG_2022;
+
+ALTER DATABASE inventario_db ADD FILE (
+    NAME = P_2023,
+    FILENAME = 'C:\ParticionesDB\InventarioDB\P_2023.ndf'
+) TO FILEGROUP FG_2023;
+
+ALTER DATABASE inventario_db ADD FILE (
+    NAME = P_2024,
+    FILENAME = 'C:\ParticionesDB\InventarioDB\P_2024.ndf'
+) TO FILEGROUP FG_2024;
+
+ALTER DATABASE inventario_db ADD FILE (
+    NAME = P_2025,
+    FILENAME = 'C:\ParticionesDB\InventarioDB\P_2025.ndf'
+) TO FILEGROUP FG_2025;
+
+-- Partition Scheme
+CREATE PARTITION SCHEME SchemePartitionByYear AS PARTITION SchemePartitionByYear
+TO (FG_2022, FG_2023, FG_2024, FG_2025, FG_2026);
+
+-- Tabla con particion horizontal
+CREATE TABLE sale_byYearDate (
+    `id` int PRIMARY KEY AUTO_INCREMENT,
+    `unit_amount` int NOT NULL,
+    `date` date NOT NULL,
+    `total_value` decimal(7,2),
+    `product_id` int NOT NULL
+) ON SchemePartitionByYear (date);
 
 -- REGISTRAR
 DELIMITER //
