@@ -178,6 +178,63 @@ FLUSH PRIVILEGES;
 SHOW GRANTS FOR 'admin'@'localhost';
 SHOW GRANTS FOR 'operador'@'localhost';
 
+-- GESTION SEGURA DE USUARIOS
+
+-- Permitir que el operador ejecute los procedimientos necesarios
+GRANT EXECUTE ON PROCEDURE inventario_db.registrar_producto TO 'operador'@'localhost';
+GRANT EXECUTE ON PROCEDURE inventario_db.actualizar_producto TO 'operador'@'localhost';
+GRANT EXECUTE ON PROCEDURE inventario_db.eliminar_producto TO 'operador'@'localhost';
+GRANT EXECUTE ON PROCEDURE inventario_db.actualizar_stock_venta TO 'operador'@'localhost';
+GRANT EXECUTE ON PROCEDURE inventario_db.reposicionar_stock TO 'operador'@'localhost';
+
+-- Permitir que el operador ejecute la función de consulta de stock de productos
+GRANT EXECUTE ON FUNCTION inventario_db.consultar_stock_producto TO 'operador'@'localhost';
+
+-- Auditoria de usuarios
+CREATE TABLE auditoria (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  usuario VARCHAR(50),
+  accion VARCHAR(10),
+  tabla VARCHAR(50),
+  fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  datos_antiguos TEXT,
+  datos_nuevos TEXT
+);
+
+DELIMITER //
+CREATE TRIGGER after_insert_producto
+AFTER INSERT ON product
+FOR EACH ROW
+BEGIN
+  INSERT INTO auditoria (usuario, accion, tabla, datos_nuevos)
+  VALUES (CURRENT_USER(), 'INSERT', 'product', CONCAT('ID: ', NEW.id, ', Code: ', NEW.code, ', Name: ', NEW.name));
+END //
+DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER after_update_producto
+AFTER UPDATE ON product
+FOR EACH ROW
+BEGIN
+  INSERT INTO auditoria (usuario, accion, tabla, datos_antiguos, datos_nuevos)
+  VALUES (CURRENT_USER(), 'UPDATE', 'product', 
+          CONCAT('ID: ', OLD.id, ', Code: ', OLD.code, ', Name: ', OLD.name, ', Price: ', OLD.unit_price, ', Stock: ', OLD.stock),
+          CONCAT('ID: ', NEW.id, ', Code: ', NEW.code, ', Name: ', NEW.name, ', Price: ', NEW.unit_price, ', Stock: ', NEW.stock));
+END //
+DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER after_delete_producto
+AFTER DELETE ON product
+FOR EACH ROW
+BEGIN
+  INSERT INTO auditoria (usuario, accion, tabla, datos_antiguos)
+  VALUES (CURRENT_USER(), 'DELETE', 'product', CONCAT('ID: ', OLD.id, ', Code: ', OLD.code, ', Name: ', OLD.name));
+END //
+DELIMITER ;
+
+SELECT * FROM auditoria;
+
 -- CONSULTAS BASICAS DE REPORTES GENERALES
 
 -- Consulta que muestra el código, nombre, stock actual, precio unitario y el valor total de cada producto.
