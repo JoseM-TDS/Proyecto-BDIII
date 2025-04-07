@@ -30,7 +30,21 @@
 |  6  |       |     stock     |      int     |   Cantidad de unidades disponibles     |
 |  7  |  FK   | store_location|      int     | Almacén en el que se encuentra ubicado |
 
-3. **Nombre:** sale (Venta)  
+### Partición vertical
+3. **Nombre:** product_stock (Stock de productos)  
+**Status:** Activo  
+**Dueño** Jose Meléndez  
+**Columnas:**
+
+| No. | Llave |     Nombre    | Tipo de dato |              Descripción               |
+|:---:|:-----:|---------------|:------------:|----------------------------------------|
+|  1  |  PK   |      id       |      int     |     Identificador de un producto       |
+|  2  |       |      code     |      int     |   Código del producto en el sistema    |
+|  3  |       |     stock     |      int     |   Cantidad de unidades disponibles     |
+|  4  |       | store_location|      int     | Almacén en el que se encuentra ubicado |
+|  5  |  FK   |      id       |      int     |     Identificador de un producto       |
+
+4. **Nombre:** sale (Venta)  
    **Status:** Activo  
    **Dueño:** Jose Melendez  
    **Columnas:**
@@ -42,6 +56,34 @@
 |  3  |       |    date      |      date    |        Fecha de la venta      |
 |  4  |       |  total_value | decimal(7,2) |    Valor total de la venta    |
 |  5  |  FK   |  product_id  |      int     | El producto que se ha vendido |
+
+### Partición horizontal
+5. **Nombre:** sale_byYearDate (Ventas por año)  
+**Status:** Activo  
+**Dueño** Jose Meléndez  
+**Columnas:**
+
+| No. | Llave |    Nombre    | Tipo de dato |         Descripción           |
+|:---:|:-----:|--------------|:------------:|-------------------------------|
+|  1  |  PK   |      id      |      int     |  Identificador de una venta   |
+|  2  |       | unit_amount  |      int     |      Cantidad de unidades     |
+|  3  |       |    date      |      date    |        Fecha de la venta      |
+|  4  |       |  total_value | decimal(7,2) |    Valor total de la venta    |
+|  5  |  FK   |  product_id  |      int     | El producto que se ha vendido |
+
+### Función de partición
+```sql
+CREATE PARTITION FUNCTION PartitionByYear (DATE) AS RANGE LEFT FOR VALUES ('2022-12-31', '2023-12-31', '2024-12-31');
+```
+
+### Esquema de partición:
+**Partición por año:** 2022, 2023, 2024, 2025  
+**Ubicación de archivos de datos:** 'C:\ParticionesDB\InventarioDB'
+
+```sql
+CREATE PARTITION SCHEME SchemePartitionByYear AS PARTITION SchemePartitionByYear
+TO (FG_2022, FG_2023, FG_2024, FG_2025);
+```
 
 ## Gestión de inventario
 ## Implementación de Funciones
