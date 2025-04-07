@@ -69,7 +69,7 @@ ALTER DATABASE inventario_db ADD FILE (
 
 -- Partition Scheme
 CREATE PARTITION SCHEME SchemePartitionByYear AS PARTITION SchemePartitionByYear
-TO (FG_2022, FG_2023, FG_2024, FG_2025, FG_2026);
+TO (FG_2022, FG_2023, FG_2024, FG_2025);
 
 -- Tabla con particion horizontal
 CREATE TABLE sale_byYearDate (
