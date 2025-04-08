@@ -452,33 +452,8 @@ END$$
 
 DELIMITER ;
 
--- Vista de ventas por año
-CREATE VIEW vista_ventas_por_anio AS
-SELECT  
-    s.name AS Almacen,
-    p.name AS Producto,
-    sa.unit_amount AS Cantidad_Vendida,
-    sa.date AS Fecha_Venta,
-    sa.total_value AS Valor_Total,
-    YEAR(sa.date) AS Año
-FROM sale_byYearDate sa
-JOIN product p ON sa.product_id = p.id
-JOIN store_location s ON p.store_location = s.id;
-
-SELECT * FROM vista_ventas_por_anio LIMIT 0, 1000;
-
--- Vista de inventario por ubicación
-CREATE OR REPLACE VIEW vista_inventario_por_ubicacion AS
-SELECT 
-    s.name AS almacen,
-    COUNT(p.id) AS total_productos,
-    SUM(p.stock) AS stock_total,
-    SUM(p.unit_price * p.stock) AS valor_total
-FROM product p
-JOIN store_location s ON p.store_location = s.id
-GROUP BY s.name;
-
 -- Productos vendidos desde un almacén específico
+CREATE VIEW vista_ventas_por_almacen AS
 SELECT 
     s.name AS Almacen,
     p.name AS Producto,
@@ -488,11 +463,11 @@ SELECT
 FROM sale_byYearDate sa
 JOIN product p ON sa.product_id = p.id
 JOIN store_location s ON p.store_location = s.id
-WHERE s.name = 'Almacén Central';
+WHERE s.name = 'Almacén Central'
+ORDER BY s.name;
 
--- Vistas de ventas
 -- Ventas por Producto en un Mes Específico
-CREATE VIEW ventas_por_producto_mes AS
+CREATE VIEW vista_ventas_por_producto_mes AS
 SELECT 
     p.name AS Producto,
     SUM(s.unit_amount) AS Total_Vendido,
@@ -502,17 +477,6 @@ JOIN product p ON s.product_id = p.id
 WHERE MONTH(s.date) = 1 AND YEAR(s.date) = 2024  -- Puedes modificar el mes y año
 GROUP BY p.name
 ORDER BY Total_Vendido DESC;
-
--- Ventas por Almacén y Producto
-CREATE VIEW ventas_por_almacen_producto AS
-SELECT 
-    s.name AS Almacen,
-    p.name AS Producto,
-    SUM(sa.unit_amount) AS Cantidad_Vendida
-FROM sale_byYearDate sa
-JOIN product p ON sa.product_id = p.id
-JOIN store_location s ON p.store_location = s.id
-GROUP BY s.name, p.name;
 
 -- ======================================
 -- CONSULTAS AVANZADAS
