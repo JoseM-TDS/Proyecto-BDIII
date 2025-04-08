@@ -257,15 +257,6 @@ FROM product p
 JOIN store_location s ON p.store_location = s.id
 ORDER BY s.name;
 
--- Consulta que obtiene los productos con stock bajo (menor a 10 unidades). 
-
-SELECT 
-    code AS Codigo, 
-    name AS Producto, 
-    stock AS Stock
-FROM product
-WHERE stock < 10; -- Se puede ajustar el valor según sea necesario.
-
 -- Consulta que muestra los productos cuyo precio unitario es mayor a un valor específico (en este caso, 100).
 
 SELECT 
